@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { mongoURL } = require('../config');
 
-const dbURL = mongoURL || 'mongodb://localhost:27017/Pokedex';
+const dbURL = mongoURL || 'mongodb://localhost:27017/BPL';
 
 module.exports = () => {
 

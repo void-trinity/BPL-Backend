@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const { getAllUsers, addUser } = require('./users');
+const { getAllUsers, addUser, login } = require('./users');
 const { getAllGames, addGame } = require('./games');
 const { getAllEvents, addEvent } = require('./events');
 const startConnection = require('./dbInit');
@@ -104,5 +104,7 @@ router.post('/api/add/event', bodyParser.json(), async (req, res) => {
             error: result.data
         });
 });
+
+router.post('/api/login', bodyParser.json(), login);
 
 module.exports = router;

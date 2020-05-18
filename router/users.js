@@ -1,5 +1,7 @@
 const User = require('../models/user');
 
+const { generate_jwt } = require('./jwt');
+
 const getAllUsers = async () => {
     var result = await User.find({}).sort('name')
         .then((data) => {
@@ -69,9 +71,11 @@ const login = async (req, res, next) => {
                 });
                 return;
             }
+            const token = generate_jwt(user);
             res.status(200).json({
                 success: true,
-                data: 'User authenticated'
+                data: 'User authenticated',
+                token
             });
         });
     });

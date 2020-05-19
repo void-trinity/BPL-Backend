@@ -33,6 +33,15 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
+    },
+    totalGames: {
+        type: Number,
+        default: 0,
+    },
+    dateofbirth: {
+        type: Date,
+        default: Date.now,
+        required: true
     }
 });
 

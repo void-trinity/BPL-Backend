@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const { getAllUsers, addUser, login } = require('./users');
+const { getLeaderboard, addUser, login } = require('./users');
 const { getAllGames, addGame } = require('./games');
 const { getAllEvents, addEvent } = require('./events');
 const  { verify_jwt } = require('./jwt');
@@ -19,34 +19,9 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/api/get/users', verify_jwt, async (req, res) => {
-    var result = await getAllUsers();
-    if (result.success)
-        res.status(200).json({
-            success: true,
-            data: result.data,
-        });
-    else
-        res.status(400).json({
-            success: false,
-            error: result.data
-        });
-});
+router.get('/api/get/leaderboard', verify_jwt, getLeaderboard);
 
-router.post('/api/add/user', bodyParser.json(), async (req, res) => {
-    const { user } = req.body;
-    var result = await addUser(user);
-    if (result.success)
-        res.status(200).json({
-            success: true,
-            data: result.data
-        });
-    else
-        res.status(400).json({
-            success: false,
-            error: result.data
-        });
-});
+router.post('/api/add/user', bodyParser.json(), addUser);
 
 router.get('/api/get/games', verify_jwt, async (req, res) => {
     var result = await getAllGames();

@@ -2,39 +2,61 @@ const User = require('../models/user');
 
 const { generate_jwt } = require('./jwt');
 
-const getAllUsers = async () => {
-    var result = await User.find({}).sort('name')
+const getLeaderboard = (req, res, next) => {
+    User.find({}).sort([['totalScore', 'descending'], ['totalGames', 'ascending'], ['dateofbirth', 'ascending']])
         .then((data) => {
-            return { success: true, data }
+            var result = data.map((item, index) => {
+                return {
+                    username: item.username,
+                    totalScore: item.totalScore,
+                    totalGames: item.totalGames,
+                    rank: index + 1,
+                }
+            });
+            res.status(200).json({
+                success: true,
+                data: result
+            })
         })
         .catch((error) => {
-            return { success: false, data: error }
+            res.status(400).json({
+                success: false,
+                data: 'Something went wrong, we\'ll be back soon' 
+            });
         });
-
-    return result;
 }
 
 
-const addUser = async (user) => {
-    var { fullname, username, email, gender, password } = user;
-
-    var newUser = new User({
-        username,
-        fullname,
-        email,
-        gender,
-        password
-    });
-
-    var result = await newUser.save()
-        .then(() => {
-            return { success: true, data: newUser }
-        })
-        .catch((error) => {
-            return {success: false, data: error }
+const addUser = (req, res, next) => {
+    if (req.body && req.body.user) {
+        var { fullname, username, email, gender, password } = req.body.user;
+        var newUser = new User({
+            username,
+            fullname,
+            email,
+            gender,
+            password
         });
 
-    return result;
+        newUser.save()
+            .then(() => {
+                res.status(200).json({
+                    success: true,
+                    data: newUser
+                });
+            })
+            .catch((error) => {
+                res.status(400).json({
+                    success: false,
+                    data: 'Something went wrong, we\'ll be back soon'
+                })
+            });
+    } else {
+        res.status(404).json({
+            success: false,
+            data: 'Data not found'
+        })
+    }
 }
 
 const login = async (req, res, next) => {
@@ -82,7 +104,7 @@ const login = async (req, res, next) => {
 }
 
 module.exports = {
-    getAllUsers,
+    getLeaderboard,
     addUser,
     login
 }

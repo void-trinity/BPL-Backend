@@ -11,6 +11,7 @@ const getLeaderboard = (req, res, next) => {
                     totalScore: item.totalScore,
                     totalGames: item.totalGames,
                     rank: index + 1,
+                    fullname: item.fullname
                 }
             });
             res.status(200).json({

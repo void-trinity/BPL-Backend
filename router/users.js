@@ -47,7 +47,6 @@ const login = async (req, res, next) => {
     const { token, type } = req.body;
     if (type === 'G') {
         result = await googleLogin(token);
-        console.log(result);
         if (!result.success) {
             res.status(404).json({
                 success: 'false',
@@ -78,7 +77,6 @@ const login = async (req, res, next) => {
 
         newUser.save((error, user) => {
             if (error) {
-                console.log(error);
                 res.status(400).json({
                     success: false,
                     data: 'Something went wrong, we\'ll be back soon.'

@@ -139,9 +139,47 @@ const updateNotificationId = async (req, res, next) => {
     }
 }
 
+const updateAvatar = async (req, res, next) => {
+    const { email } = req.user;
+    const { avatar } = req.body;
+
+    var isUserPresent = await checkUserInDB(email);
+
+    if (!isUserPresent) {
+        res.status(404).json({
+            success: false,
+            data: 'User not found'
+        });
+        return;
+    } else {
+        isUserPresent.avatar = avatar;
+        isUserPresent.save((error, user) => {
+            if (error) {
+                res.status(400).json({
+                    success: false,
+                    data: 'Something went wrong, we\'ll be back soon.'
+                });
+                return;
+            } else if(!user) {
+                res.status(400).json({
+                    success: false,
+                    data: 'Something went wrong, we\'ll be back soon.'
+                });
+                return;
+            } else {
+                res.status(200).json({
+                    success: true,
+                });
+                return;
+            }
+        });
+    }
+}
+
 
 module.exports = {
     getLeaderboard,
     login,
-    updateNotificationId
+    updateNotificationId,
+    updateAvatar
 }

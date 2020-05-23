@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const { getLeaderboard, login, updateNotificationId } = require('./users');
+const { getLeaderboard, login, updateNotificationId, updateAvatar } = require('./users');
 const  { verify_jwt } = require('../helpers/jwt');
 const startConnection = require('../helpers/dbInit');
 
@@ -22,5 +22,7 @@ router.get('/api/get/leaderboard', verify_jwt, getLeaderboard);
 router.post('/api/login', bodyParser.json(), login);
 
 router.post('/api/update/notificationid', verify_jwt, bodyParser.json(), updateNotificationId);
+
+router.post('/api/update/avatar', verify_jwt, bodyParser.json(), updateAvatar);
 
 module.exports = router;

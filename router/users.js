@@ -1,17 +1,31 @@
 const User = require('../models/user');
+const { generate_jwt } = require('../helpers/jwt');
+const facebookLogin = require('../helpers/fbLogin');
+const googleLogin = require('../helpers/googleLogin');
 
-const { generate_jwt } = require('./jwt');
+
+const checkUserInDB = async (email) => {
+    let result = {};
+    await User.findOne({ email }, (error, user) => {
+        if (error || user === null) {
+            result = { success: false };
+        } else {
+            result = { success: true, user };
+        }
+    });
+
+    return result;
+}
 
 const getLeaderboard = (req, res, next) => {
-    User.find({}).sort([['totalScore', 'descending'], ['totalGames', 'ascending'], ['dateofbirth', 'ascending']])
+    User.find({}).sort([['totalScore', 'descending'], ['totalGames', 'ascending']])
         .then((data) => {
             var result = data.map((item, index) => {
                 return {
-                    username: item.username,
+                    name: item.name,
                     totalScore: item.totalScore,
                     totalGames: item.totalGames,
                     rank: index + 1,
-                    fullname: item.fullname
                 }
             });
             res.status(200).json({
@@ -28,84 +42,64 @@ const getLeaderboard = (req, res, next) => {
 }
 
 
-const addUser = (req, res, next) => {
-    if (req.body && req.body.user) {
-        var { fullname, username, email, gender, password } = req.body.user;
+const login = async (req, res, next) => {
+    var result;
+    const { token, type } = req.body;
+    if (type === 'G') {
+        result = await googleLogin(token);
+        if (!result.success) {
+            res.status(404).json({
+                success: 'false',
+                data: 'Invalid token sent'
+            });
+            return;
+        }
+    } else if (type === 'F') {
+        result = await facebookLogin(token);
+        if (!result.success) {
+            res.status(404).json({
+                success: 'false',
+                data: 'Invalid token sent'
+            });
+            return;
+        }
+    }
+
+    var isUserPresent = await checkUserInDB(result.email);
+    
+    if (!isUserPresent.success) {
+        var { name, email } = result;
         var newUser = new User({
-            username,
-            fullname,
+            name,
             email,
-            gender,
-            password
+            username: email
         });
 
-        newUser.save()
-            .then(() => {
-                res.status(200).json({
-                    success: true,
-                    data: newUser
-                });
-            })
-            .catch((error) => {
+        newUser.save((error, user) => {
+            if (error || user === null) {
                 res.status(400).json({
                     success: false,
-                    data: 'Something went wrong, we\'ll be back soon'
+                    data: 'Something went wrong, we\'ll be back soon.'
                 })
-            });
+            } else {
+                var jwt_token = generate_jwt(user);
+                res.status(200).json({
+                    success: true,
+                    token: jwt_token
+                });
+            }
+        });
     } else {
-        res.status(404).json({
-            success: false,
-            data: 'Data not found'
-        })
+        var jwt_token = generate_jwt(isUserPresent.user);
+        res.status(200).json({
+            success: true,
+            token: jwt_token
+        });
     }
 }
 
-const login = async (req, res, next) => {
-    const { username, password } = req.body.user;
-
-    User.findOne({ username }, (error, user) => {
-        if (error) {
-            res.status(400).json({
-                success: false,
-                data: 'Something went wrong',
-            });
-            return;
-        }
-        if (user == null) {
-            console.log(user);
-            res.status(404).json({
-                success: false,
-                data: 'User not found'
-            });
-            return;
-        }
-        return user.comparePassword(password, (error, isMatch) => {
-            if (error) {
-                res.status(400).json({
-                    success: false,
-                    data: 'Something went wrong',
-                });
-                return;
-            }
-            if (!isMatch) {
-                res.status(404).json({
-                    success: false,
-                    data: 'Wrong Credentials'
-                });
-                return;
-            }
-            const token = generate_jwt(user);
-            res.status(200).json({
-                success: true,
-                data: 'User authenticated',
-                token
-            });
-        });
-    });
-}
 
 module.exports = {
     getLeaderboard,
-    addUser,
-    login
+    login,
 }

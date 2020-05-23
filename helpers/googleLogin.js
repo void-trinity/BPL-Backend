@@ -6,7 +6,6 @@ const googleLogin = async (token) => {
     
     var result = await client.verifyIdToken({ idToken: token, audience: CLIENT_ID})
         .then(data => {
-            console.log(data)
             return {
                 success: true,
                 email: data.payload.email,

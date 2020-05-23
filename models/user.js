@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
     },
     notificationID: {
         type: String,
-        unique: true
+        default: ''
     }
 });
 

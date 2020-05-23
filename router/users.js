@@ -5,15 +5,7 @@ const googleLogin = require('../helpers/googleLogin');
 
 
 const checkUserInDB = async (email) => {
-    let result = {};
-    await User.findOne({ email }, (error, user) => {
-        if (error || user === null) {
-            result = { success: false };
-        } else {
-            result = { success: true, user };
-        }
-    });
-
+    var result = await User.findOne({ email });
     return result;
 }
 
@@ -70,7 +62,7 @@ const login = async (req, res, next) => {
 
     var isUserPresent = await checkUserInDB(result.email);
     
-    if (!isUserPresent.success) {
+    if (!isUserPresent) {
         var { name, email } = result;
         var newUser = new User({
             name,
@@ -101,10 +93,48 @@ const login = async (req, res, next) => {
             }
         });
     } else {
-        var jwt_token = generate_jwt(isUserPresent.user);
+        var jwt_token = generate_jwt(isUserPresent);
         res.status(200).json({
             success: true,
             token: jwt_token
+        });
+    }
+
+}
+
+const updateNotificationId = async (req, res, next) => {
+    const { email } = req.user;
+    const { notificationID } = req.body;
+
+    var isUserPresent = await checkUserInDB(email);
+
+    if (!isUserPresent) {
+        res.status(404).json({
+            success: false,
+            data: 'User not found'
+        });
+        return;
+    } else {
+        isUserPresent.notificationID = notificationID;
+        isUserPresent.save((error, user) => {
+            if (error) {
+                res.status(400).json({
+                    success: false,
+                    data: 'Something went wrong, we\'ll be back soon.'
+                });
+                return;
+            } else if(!user) {
+                res.status(400).json({
+                    success: false,
+                    data: 'Something went wrong, we\'ll be back soon.'
+                });
+                return;
+            } else {
+                res.status(200).json({
+                    success: true,
+                });
+                return;
+            }
         });
     }
 }
@@ -113,4 +143,5 @@ const login = async (req, res, next) => {
 module.exports = {
     getLeaderboard,
     login,
+    updateNotificationId
 }

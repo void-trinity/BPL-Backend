@@ -105,7 +105,6 @@ const login = async (req, res, next) => {
 const updateNotificationId = async (req, res, next) => {
     const { email } = req.user;
     const { notificationID } = req.body;
-    console.log(notificationID);
 
     var isUserPresent = await checkUserInDB(email);
 
@@ -119,7 +118,6 @@ const updateNotificationId = async (req, res, next) => {
         isUserPresent.notificationID = notificationID;
         isUserPresent.save((error, user) => {
             if (error) {
-                console.log(error);
                 res.status(400).json({
                     success: false,
                     data: 'Something went wrong, we\'ll be back soon.'

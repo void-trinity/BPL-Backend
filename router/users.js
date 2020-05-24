@@ -176,10 +176,35 @@ const updateAvatar = async (req, res, next) => {
     }
 }
 
+const getUserInfo = async (req, res, next) => {
+    var email = '';
+    if(req.body.email)
+        email = req.body.email;
+    else
+        email = req.user.email;
+
+    var isUserPresent = await checkUserInDB(email);
+
+    if (!isUserPresent) {
+        res.status(404).json({
+            success: false,
+            data: 'User not found'
+        });
+        return;
+    } else {
+        res.status(200).json({
+            success: true,
+            data: isUserPresent
+        });
+        return;
+    }
+}
+
 
 module.exports = {
     getLeaderboard,
     login,
     updateNotificationId,
-    updateAvatar
+    updateAvatar,
+    getUserInfo
 }

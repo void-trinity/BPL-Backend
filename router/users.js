@@ -200,11 +200,49 @@ const getUserInfo = async (req, res, next) => {
     }
 }
 
+const updateUsername = async (req, res, next) => {
+    const { email } = req.user;
+    const { username } = req.body;
+
+    var isUserPresent = await checkUserInDB(email);
+
+    if (!isUserPresent) {
+        res.status(404).json({
+            success: false,
+            data: 'User not found'
+        });
+        return;
+    } else {
+        isUserPresent.username = username;
+        isUserPresent.save((error, user) => {
+            if (error) {
+                res.status(400).json({
+                    success: false,
+                    data: 'Something went wrong, we\'ll be back soon.'
+                });
+                return;
+            } else if(!user) {
+                res.status(400).json({
+                    success: false,
+                    data: 'Something went wrong, we\'ll be back soon.'
+                });
+                return;
+            } else {
+                res.status(200).json({
+                    success: true,
+                });
+                return;
+            }
+        });
+    }
+}
+
 
 module.exports = {
     getLeaderboard,
     login,
     updateNotificationId,
     updateAvatar,
-    getUserInfo
+    getUserInfo,
+    updateUsername
 }

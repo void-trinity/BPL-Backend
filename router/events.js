@@ -1,35 +1,66 @@
 const Event = require('../models/event');
+const User = require('../models/user');
 
-const getAllEvents = async () => {
-    var result = await Event.find({}).sort('time').populate('User')
-        .then((data) => {
-            return { success: true, data }
-        })
-        .catch((error) => {
-            return { success: false, data: error }
+
+const updateScores = async (game, scores) => {
+    const session = await Event.startSession();
+
+    session.startTransaction();
+
+    try {
+        scores.map(async (item) => {
+            await User.findOneAndUpdate({ username: item.username }, { $inc: { totalScore: item.points, totalGames: 1 } })
         });
 
-    return result;
+        var newEvent = new Event({
+            game, scores
+        });
+
+        await newEvent.save();
+        await session.commitTransaction();
+        session.endSession();
+        return true;
+
+    } catch(error) {
+        await session.abortTransaction();
+        session.endSession();
+        return false; 
+    }
 }
 
 
-const addEvent = async (event) => {
-    var { game, scores } = event;
-
-    var newEvent = new Event({
-        game,
-        scores
-    });
-
-    var result = await newEvent.save()
-        .then(() => {
-            return { success: true, data: newEvent }
+const getAllEvents = async (req, res, next) => {
+    var result = await Event.find({}).sort('time')
+    
+    if(result) {
+        res.status(200).json({
+            success: true,
+            data: result
         })
-        .catch((error) => {
-            return {success: false, data: error }
-        });
+    } else {
+        res.status(404).json({
+            success: false,
+            data: 'No events found'
+        })
+    }
 
-    return result;
+}
+
+
+const addEvent = async (req, res, next) => {
+    var { game, scores } = req.body.event;
+    var result = updateScores(game, scores);
+
+    if(result) {
+        res.status(200).json({
+            success: true
+        });
+    } else {
+        res.status(400).json({
+            success: false
+        })
+    }
+    
 }
 
 module.exports = {

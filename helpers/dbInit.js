@@ -5,7 +5,7 @@ const dbURL = mongoURL || 'mongodb://localhost:27017/BPL';
 
 module.exports = () => {
 
-    mongoose.connect(dbURL, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true });
+    mongoose.connect(dbURL, { useFindAndModify: false, useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true });
 
     mongoose.connection.on('connected', function(){
         console.log("Mongoose default connection is open");

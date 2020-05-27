@@ -1,20 +1,26 @@
 const Game = require('../models/game');
 
-const getAllGames = async () => {
+const getAllGames = async (req, res, next) => {
     var result = await Game.find({}).sort('name')
-        .then((data) => {
-            return { success: true, data }
+    
+    if(result) {
+        res.status(200).json({
+            success: true,
+            data: result
         })
-        .catch((error) => {
-            return { success: false, data: error }
-        });
+    } else {
+        res.status(404).json({
+            success: false,
+            data: 'No events found'
+        })
+    }
 
     return result;
 }
 
 
-const addGame = async (game) => {
-    var { name, rules, description, shortDescription } = game;
+const addGame = async (req, res, next) => {
+    var { name, rules, description, shortDescription } = req.body.game;
 
     var newGame = new Game({
         name,
@@ -23,15 +29,19 @@ const addGame = async (game) => {
         shortDescription
     });
 
-    var result = await newGame.save()
-        .then(() => {
-            return { success: true, data: newGame }
-        })
-        .catch((error) => {
-            return {success: false, data: error }
-        });
-
-    return result;
+    newGame.save((error, result) => {
+        if(error || !result) {
+            console.log(error)
+            res.status(400).json({
+                success: false
+            })
+        } else {
+            res.status(200).json({
+                success: true,
+                data: result
+            })
+        }
+    })
 }
 
 module.exports = {
